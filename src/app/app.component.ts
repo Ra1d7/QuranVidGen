@@ -1,4 +1,8 @@
 import { Component } from '@angular/core';
+import { QuranService } from './Services/quran.service';
+import { catchError, of } from 'rxjs';
+import { Ayah } from './Interfaces/ayah';
+import { Surah } from './Interfaces/surah';
 
 @Component({
   selector: 'app-root',
@@ -6,5 +10,6 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  title = 'QuranVidGen';
+  constructor(private quranService:QuranService){}
+  ngOnInit(){ }
 }
