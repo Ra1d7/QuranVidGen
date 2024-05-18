@@ -5,19 +5,19 @@
       <span class="p-inputgroup-addon">
           <i class="pi pi-book"></i>
       </span>
-      <input #surah pInputText type="number" [min]="1" [max]="114" (change)="helper.inputNumberRestrict(surah,1,114)"  placeholder="Surah Number" />
+      <input #surah pInputText type="number" [min]="1" [max]="114" (input)="helper.inputNumberRestrict(surah,start,end,1,114)"  placeholder="Surah Number" />
     </div>
     <div class="p-inputgroup">
       <span class="p-inputgroup-addon">
         <i class="pi pi-play"></i>
     </span>
-      <input #start type="number" pInputText placeholder="Start Ayah" />
+      <input #start type="number" [min]="1" pInputText placeholder="Start Ayah" />
     </div>
     <div class="p-inputgroup">
       <span class="p-inputgroup-addon">
         <i class="pi pi-circle-on"></i>
       </span>
-      <input #end type="number" pInputText placeholder="End Ayah" />
+      <input #end type="number" [min]="1" pInputText placeholder="End Ayah" />
     </div>
     <div class="p-inputgroup w-auto">
 
