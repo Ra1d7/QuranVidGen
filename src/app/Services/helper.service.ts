@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { CORE_SIZE } from './constants';
 
 @Injectable({
   providedIn: 'root'
@@ -16,5 +17,10 @@ export class HelperService {
     if(numVal > max){
       input.value = max.toString();
     }
+  }
+
+  getDownloadProgress(url:string,recieved:number):number{
+    const total = (CORE_SIZE as any)[url];
+    return Math.floor(recieved / total * 100);
   }
 }

@@ -10,6 +10,9 @@ import { InputTextModule } from 'primeng/inputtext';
 import { CheckboxModule } from 'primeng/checkbox';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import {ButtonModule} from 'primeng/button'
+import { ProgressBarModule } from 'primeng/progressbar';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
 
 @NgModule({
   declarations: [
@@ -25,9 +28,11 @@ import {ButtonModule} from 'primeng/button'
     InputTextModule,
     CheckboxModule,
     RadioButtonModule,
-    ButtonModule
+    ButtonModule,
+    ProgressBarModule,
+    ToastModule
   ],
-  providers: [],
+  providers: [MessageService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

@@ -1,38 +1,50 @@
-<div class="d-flex justify-content-center align-items-center mt-3 gap-3 w-50 mx-auto">
+<div *ngIf="loaded;else progress">
+  <div class="d-flex justify-content-center align-items-center mt-3 gap-3 w-50 mx-auto">
 
-  <div class="p-inputgroup">
-    <span class="p-inputgroup-addon">
-        <i class="pi pi-book"></i>
+    <div class="p-inputgroup">
+      <span class="p-inputgroup-addon">
+          <i class="pi pi-book"></i>
+      </span>
+      <input #surah pInputText type="number" [min]="1" [max]="114" (change)="helper.inputNumberRestrict(surah,1,114)"  placeholder="Surah Number" />
+    </div>
+    <div class="p-inputgroup">
+      <span class="p-inputgroup-addon">
+        <i class="pi pi-play"></i>
     </span>
-    <input #surah pInputText type="number" [min]="1" [max]="114" (change)="helper.inputNumberRestrict(surah,1,114)"  placeholder="Surah Number" />
+      <input #start type="number" pInputText placeholder="Start Ayah" />
+    </div>
+    <div class="p-inputgroup">
+      <span class="p-inputgroup-addon">
+        <i class="pi pi-circle-on"></i>
+      </span>
+      <input #end type="text" pInputText placeholder="End Ayah" />
+    </div>
+    <div class="p-inputgroup">
+
+      <p-button label="Get Audio" [rounded]="true" severity="success"  (onClick)="GetAyahsAndLoadThem(surah.value,start.value,end.value)"></p-button>
+    </div>
   </div>
-  <div class="p-inputgroup">
-    <span class="p-inputgroup-addon">
-      <i class="pi pi-play"></i>
-  </span>
-    <input #start type="number" pInputText placeholder="Start Ayah" />
+
+
+  <div *ngIf="loadedAudio || firstLoad;else loading;" class="d-flex justify-content-center mt-5 align-items-center">
+
+    <audio *ngIf="videoURL != ''" [src]="videoURL" autoplay controls></audio>
+
   </div>
-  <div class="p-inputgroup">
-    <span class="p-inputgroup-addon">
-      <i class="pi pi-circle-on"></i>
+  <ng-template #loading>
+    <span class="h1 d-flex my-5 justify-content-center align-items-center">
+      <i class="h1 fw-bold pi pi-spin pi-spinner"></i>
     </span>
-    <input #end type="text" pInputText placeholder="End Ayah" />
-  </div>
-  <div class="p-inputgroup">
-
-    <p-button label="Get Audio" [rounded]="true" severity="success"  (onClick)="GetAyahsAndLoadThem(surah.value,start.value,end.value)"></p-button>
-  </div>
-</div>
-
-
-<div *ngIf="loadedAudio || firstLoad;else loading;" class="d-flex justify-content-center mt-5 align-items-center">
-
-  <audio *ngIf="videoURL != ''" [src]="videoURL" autoplay controls></audio>
+  </ng-template>
 
 </div>
-<ng-template #loading>
-  <span class="h1 d-flex my-5 justify-content-center align-items-center">
-    <i class="h1 fw-bold pi pi-spin pi-spinner"></i>
-  </span>
+<ng-template #progress>
+  <div class="d-flex justify-content-center align-items-center" style="height: 85dvh;width: 100dvw;">
+
+    <div class="mx-auto w-50">
+      <span>Loading {{currentLoading?.name}}</span>
+      <p-toast></p-toast>
+      <p-progressBar [value]="currentLoading?.value"></p-progressBar>
+  </div>
+  </div>
 </ng-template>
-
