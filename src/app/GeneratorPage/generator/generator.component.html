@@ -17,11 +17,11 @@
       <span class="p-inputgroup-addon">
         <i class="pi pi-circle-on"></i>
       </span>
-      <input #end type="text" pInputText placeholder="End Ayah" />
+      <input #end type="number" pInputText placeholder="End Ayah" />
     </div>
     <div class="p-inputgroup w-auto">
 
-      <p-button label="Get Audio" [ngStyle]="{'width':'fit-content','height':'fit-content'}" [rounded]="true" severity="success"  (onClick)="GetAyahsAndLoadThem(surah.value,start.value,end.value)"></p-button>
+      <p-button label="Get Audio" [ngStyle]="{'width':'fit-content','aspect-ratio':'inherit'}" [rounded]="true" severity="success"  (onClick)="GetAyahsAndLoadThem(surah.value,start.value,end.value)"></p-button>
     </div>
   </div>
 
