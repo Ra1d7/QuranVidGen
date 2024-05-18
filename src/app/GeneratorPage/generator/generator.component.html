@@ -1,5 +1,5 @@
 <div *ngIf="loaded;else progress">
-  <div class="d-flex justify-content-center align-items-center mt-3 gap-3 w-50 mx-auto">
+  <div class="d-flex justify-content-center align-items-center flex-lg-row flex-column mx-auto px-3 mt-3 gap-3">
 
     <div class="p-inputgroup">
       <span class="p-inputgroup-addon">
@@ -19,9 +19,9 @@
       </span>
       <input #end type="text" pInputText placeholder="End Ayah" />
     </div>
-    <div class="p-inputgroup">
+    <div class="p-inputgroup w-auto">
 
-      <p-button label="Get Audio" [rounded]="true" severity="success"  (onClick)="GetAyahsAndLoadThem(surah.value,start.value,end.value)"></p-button>
+      <p-button label="Get Audio" [ngStyle]="{'width':'fit-content','height':'fit-content'}" [rounded]="true" severity="success"  (onClick)="GetAyahsAndLoadThem(surah.value,start.value,end.value)"></p-button>
     </div>
   </div>
 

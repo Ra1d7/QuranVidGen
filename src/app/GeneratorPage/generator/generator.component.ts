@@ -28,12 +28,6 @@ export class GeneratorComponent {
   firstLoad = true;
   async ngAfterViewInit(){
     await this.load();
-    let value = 0;
-    // setInterval(() =>{
-    //   value = value +1;
-    //   this.currentLoading = {name:'test',value:value}
-    // },600)
-
   }
   async GetAyahsAndLoadThem(surahNumber:string,startAyah:string,endAyah:string){
     let surahNum = Number.parseInt(surahNumber)
