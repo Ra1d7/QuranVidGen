@@ -26,16 +26,23 @@ export class GeneratorComponent {
   currentLoading:currentLoading | undefined;
   progress:ProgressCallback | undefined;
   firstLoad = true;
+  ayatTexts:string[] = [];
+  ayahtTextAndAudio:{text:string,duration:number}[] = [];
   async ngAfterViewInit(){
     await this.load();
   }
-  async GetAyahsAndLoadThem(surahNumber:string,startAyah:string,endAyah:string){
+  async GetAyahsAndLoadThem(surahNumber:string,reciter:string,startAyah:string,endAyah:string){
     let surahNum = Number.parseInt(surahNumber)
+    let reciterId = Number.parseInt(reciter)
     let start = Number.parseInt(startAyah)
     let end = Number.parseInt(endAyah)
-    this.quranService.GetAyahsAudio(1,surahNum,start,end).subscribe(async blobs => {
+    this.quranService.GetAyahsAudio(reciterId,surahNum,start,end).subscribe(async blobs => {
       await this.transcode(blobs);
     });
+    let text = this.quranService.GetAyatTexts(surahNum,start,end,'arabic').subscribe(text =>
+      this.ayatTexts = text
+
+    );
   }
    previousPercentage = -1;
   GetProgressText(url:string | URL,name:string,recieved:number){
@@ -44,8 +51,6 @@ export class GeneratorComponent {
       if(percentage != this.previousPercentage){
         this.currentLoading = {name:name,value:percentage}
         this.previousPercentage = percentage;
-        console.log(percentage);
-
       }
 
   }
@@ -69,34 +74,63 @@ export class GeneratorComponent {
     this.firstLoad = true;
     this.loadedAudio = true;
     let audioNames: string[] = [];
-for (let index = 0; index < audios.length; index++) {
-  await this.ffmpeg.writeFile(index + '.mp3', await fetchFile(audios[index]));
-  audioNames.push(`file ${index}.mp3`);
-  if (index < audios.length - 1) { // Don't add silence after the last audio file
-    audioNames.push(`file 'silence.mp3'`);
-  }
-}
+    for (let index = 0; index < audios.length; index++) {
+      let audioData = await fetchFile(audios[index]);
+      let duration = await this.helper.getDuration(audioData);
+      await this.ffmpeg.writeFile(index + '.mp3', audioData);
+      this.ayahtTextAndAudio.push({text:this.ayatTexts[index],duration:duration ?? 0})
+      // let duration = await this.ffmpeg.
+      audioNames.push(`file ${index}.mp3`);
+      if (index < audios.length - 1) { // Don't add silence after the last audio file
+        // audioNames.push(`file 'silence.mp3'`);
+      }
+    }
+    let silenceCommand = ['-f', 'lavfi', '-i', 'anullsrc', '-t', '0.5', 'silence.mp3'];
+    await this.ffmpeg.exec(silenceCommand);
 
-let silenceCommand = ['-f', 'lavfi', '-i', 'anullsrc', '-t', '0.5', 'silence.mp3'];
-await this.ffmpeg.exec(silenceCommand);
+    // Create a text file with the names of the audio files to be concatenated
+    let filelist = audioNames.join('\n');
+    await this.ffmpeg.writeFile('filelist.txt', filelist);
 
-// Create a text file with the names of the audio files to be concatenated
-let filelist = audioNames.join('\n');
-await this.ffmpeg.writeFile('filelist.txt', filelist);
+    // Use the concat demuxer in ffmpeg
+    let commands = ['-f', 'concat', '-safe', '0', '-i', 'filelist.txt', '-c', 'copy', 'output.mp3'];
+    await this.ffmpeg.writeFile('video.mp4',await fetchFile('/assets/videos/landscapevid2.mp4'));
+    await this.ffmpeg.exec(commands);
 
-// Use the concat demuxer in ffmpeg
-let commands = ['-f', 'concat', '-safe', '0', '-i', 'filelist.txt', '-c', 'copy', 'output.mp3'];
-await this.ffmpeg.exec(commands);
+    let subtitleFile = new TextEncoder().encode(this.getSubTitles());
+    await this.ffmpeg.writeFile('subtitles.srt',subtitleFile);
 
-    let result:number = await this.ffmpeg.exec(commands);
-    if(result != 0)return;
-    const fileData = await this.ffmpeg.readFile('output.mp3');
+
+
+
+    await this.ffmpeg.exec(['-stream_loop', '-1', '-i', 'video.mp4', '-i', 'output.mp3', '-c:v', 'copy', '-c:a', 'aac', '-map', '0:v:0', '-map', '1:a:0', '-shortest', 'output.mp4']);
+    // await this.ffmpeg.exec(['-i','output.mp4','-vf','subtitles=subtitles.srt,Alignment=10','outputsub.mp4']);
+    const fileData = await this.ffmpeg.readFile('output.mp4');
     const data = new Uint8Array(fileData as ArrayBuffer);
-    this.videoURL = URL.createObjectURL(
-      new Blob([data.buffer], { type: 'audio/mpeg' })
-    );
+    this.videoURL = URL.createObjectURL(new Blob([data.buffer],{type:'video/mp4'}))
+        // let result:number = await this.ffmpeg.exec(commands);
+        // if(result != 0)return;
+        // const fileData = await this.ffmpeg.readFile('output.mp3');
+        // const data = new Uint8Array(fileData as ArrayBuffer);
+        // this.videoURL = URL.createObjectURL(
+        //   new Blob([data.buffer], { type: 'audio/mpeg' })
+        // );
 
-    this.loadedAudio = true;
-  };
+        this.loadedAudio = true;
+      };
+
+  getSubTitles():string{
+    let srtContent = '';
+    let startTime = 0;
+    this.ayahtTextAndAudio.forEach((subtitle,index) => {
+      let endTime = startTime + subtitle.duration;
+      let start = new Date(startTime * 1000).toISOString().substr(11, 12);
+      let end = new Date(endTime * 1000).toISOString().substr(11, 12);
+
+      srtContent += `${index + 1}\n${start} --> ${end}\n${subtitle.text}\n\n`;
+      startTime = endTime;
+    })
+    return srtContent;
+  }
 
 }

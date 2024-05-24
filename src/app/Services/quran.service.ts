@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { CallServerService } from './call-server.service';
-import { Observable, forkJoin, map, of, tap, throwError } from 'rxjs';
+import { Observable, forkJoin, from, map, of, tap, throwError } from 'rxjs';
 import { Surah } from '../Interfaces/surah';
 import {Reciter} from '../Interfaces/reciter';
 import { HttpClient } from '@angular/common/http';
+import { Ayah } from '../Interfaces/ayah';
 
 @Injectable({
   providedIn: 'root'
@@ -16,6 +17,27 @@ export class QuranService {
   GetSurah(surahNumber:number):Observable<Surah> | undefined{
     return this.callServerService.Get(`https://quranapi.pages.dev/api/${surahNumber}.json`);
   }
+
+  GetAyah(surahNumber:number,AyahNumber:number):Observable<Ayah> | undefined{
+    return this.callServerService.Get(`https://quranapi.pages.dev/api/${surahNumber}/${AyahNumber}.json`)
+  }
+
+  GetAyatTexts(surahNumber:number,AyahStartNumber:number,AyahEndNumber:number,language:'arabic' | 'english'):Observable<string[]>{
+    let observables:Observable<Ayah>[] = [];
+    for (let i = AyahStartNumber; i < AyahEndNumber; i++) {
+      observables.push(this.GetAyah(surahNumber,i)!);
+
+    }
+    let text:string[] = [];
+    forkJoin(observables).subscribe(ayahs => {
+      ayahs.forEach(ayah =>{
+        text.push(language == 'arabic' ? ayah.arabic1 : ayah.english);
+    })})
+
+    return of(text);
+
+  }
+
   GetReciters():Observable<Reciter[]> | undefined{
     return this.callServerService.Get(`https://quranapi.pages.dev/api/reciters.json`).pipe(map(value => {
       return Object.keys(value).map(key => {

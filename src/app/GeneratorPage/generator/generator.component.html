@@ -5,30 +5,39 @@
       <span class="p-inputgroup-addon">
           <i class="pi pi-book"></i>
       </span>
-      <input #surah pInputText type="number" [min]="1" [max]="114" (input)="helper.inputNumberRestrict(surah,start,end,1,114)"  placeholder="Surah Number" />
+      <input #surah pInputText type="number" [min]="1" [max]="114" (input)="helper.SurahNumberRestrict(surah,start,end,1,114)"  placeholder="Surah Number" />
+    </div>
+    <div class="p-inputgroup">
+      <span class="p-inputgroup-addon">
+        <i class="pi pi-user"></i>
+      </span>
+      <input #reciter type="number" [min]="1" [max]="3" (input)="helper.InputNumberRestrict(reciter)"  pInputText placeholder="Reciter" />
     </div>
     <div class="p-inputgroup">
       <span class="p-inputgroup-addon">
         <i class="pi pi-play"></i>
     </span>
-      <input #start type="number" [min]="1" pInputText placeholder="Start Ayah" />
+      <input #start type="number" [min]="1" (input)="helper.InputNumberRestrict(start)" pInputText placeholder="Start Ayah" />
     </div>
     <div class="p-inputgroup">
       <span class="p-inputgroup-addon">
         <i class="pi pi-circle-on"></i>
       </span>
-      <input #end type="number" [min]="1" pInputText placeholder="End Ayah" />
+      <input #end type="number" [min]="1" (input)="helper.InputNumberRestrict(end)" pInputText placeholder="End Ayah" />
     </div>
+
+
+
     <div class="p-inputgroup w-auto">
 
-      <p-button label="Get Audio" [ngStyle]="{'width':'fit-content','aspect-ratio':'inherit'}" [rounded]="true" severity="success"  (onClick)="GetAyahsAndLoadThem(surah.value,start.value,end.value)"></p-button>
+      <p-button label="Get Audio" [disabled]="!reciter.value || !start.value || !end.value || !surah.value" [ngStyle]="{'width':'fit-content','aspect-ratio':'inherit'}" [rounded]="true" severity="success"  (onClick)="GetAyahsAndLoadThem(surah.value,reciter.value,start.value,end.value)"></p-button>
     </div>
   </div>
 
 
-  <div *ngIf="loadedAudio || firstLoad;else loading;" class="d-flex justify-content-center mt-5 align-items-center">
+  <div *ngIf="loadedAudio || firstLoad;else loading;" class="d-flex justify-content-center my-5 align-items-center">
 
-    <audio *ngIf="videoURL != ''" [src]="videoURL" autoplay controls></audio>
+    <video *ngIf="videoURL != ''" [src]="videoURL" width="500px" height="800px" autoplay controls></video>
 
   </div>
   <ng-template #loading>
