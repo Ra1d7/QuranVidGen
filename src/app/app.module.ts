@@ -13,6 +13,8 @@ import {ButtonModule} from 'primeng/button'
 import { ProgressBarModule } from 'primeng/progressbar';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
+import { DropdownModule } from 'primeng/dropdown';
+import { FormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [
@@ -30,7 +32,9 @@ import { MessageService } from 'primeng/api';
     RadioButtonModule,
     ButtonModule,
     ProgressBarModule,
-    ToastModule
+    ToastModule,
+    DropdownModule,
+    FormsModule
   ],
   providers: [MessageService],
   bootstrap: [AppComponent]

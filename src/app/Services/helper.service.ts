@@ -11,15 +11,7 @@ export class HelperService {
   constructor(private quranService:QuranService) { }
 
 
-  SurahNumberRestrict(surahInput:HTMLInputElement,startAyahInput:HTMLInputElement,endAyahInput:HTMLInputElement,min:number,max:number){
-    if(!surahInput.value || surahInput.value == ''){return}
-    let surahNumber = Number.parseInt(surahInput.value);
-    if(min > surahNumber){
-      surahInput.value = min.toString();
-    }
-    if(surahNumber > max){
-      surahInput.value = max.toString();
-    }
+  SurahNumberRestrict(surahNumber:number,startAyahInput:HTMLInputElement,endAyahInput:HTMLInputElement){
     startAyahInput.disabled = true;
     endAyahInput.disabled = true;
     startAyahInput.value = '';

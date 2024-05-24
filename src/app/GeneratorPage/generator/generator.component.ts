@@ -2,6 +2,8 @@ import { AfterViewInit, Component } from '@angular/core';
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
 import { ProgressCallback } from '@ffmpeg/util/dist/cjs/types';
+import { Reciter } from 'src/app/Interfaces/reciter';
+import { Surah } from 'src/app/Interfaces/surah';
 import { HelperService } from 'src/app/Services/helper.service';
 import { QuranService } from 'src/app/Services/quran.service';
 
@@ -17,7 +19,7 @@ export interface currentLoading{
   styleUrls: ['./generator.component.scss']
 })
 export class GeneratorComponent {
-  constructor(private quranService:QuranService,public helper:HelperService){}
+  constructor(public quranService:QuranService,public helper:HelperService){}
   loaded = false;
   loadedAudio = false;
   ffmpeg = new FFmpeg();
@@ -27,23 +29,40 @@ export class GeneratorComponent {
   progress:ProgressCallback | undefined;
   firstLoad = true;
   ayatTexts:string[] = [];
+  suras:Surah[] = [];
+  reciters:Reciter[] = [];
+  currentSurah:string = '';
+  currentReciterId:string = '';
   ayahtTextAndAudio:{text:string,duration:number}[] = [];
   async ngAfterViewInit(){
     await this.load();
+    this.quranService.GetAllSuras().subscribe(suras =>{
+      this.suras = suras;
+    })
+    this.quranService.GetReciters()?.subscribe(reciters =>{
+      this.reciters = reciters;
+    })
+
   }
-  async GetAyahsAndLoadThem(surahNumber:string,reciter:string,startAyah:string,endAyah:string){
-    let surahNum = Number.parseInt(surahNumber)
+  async GetAyahsAndLoadThem(surahNumber:number,reciter:string,startAyah:string,endAyah:string){
     let reciterId = Number.parseInt(reciter)
     let start = Number.parseInt(startAyah)
     let end = Number.parseInt(endAyah)
-    this.quranService.GetAyahsAudio(reciterId,surahNum,start,end).subscribe(async blobs => {
+    this.quranService.GetAyahsAudio(reciterId,surahNumber,start,end).subscribe(async blobs => {
       await this.transcode(blobs);
     });
-    let text = this.quranService.GetAyatTexts(surahNum,start,end,'arabic').subscribe(text =>
+    this.quranService.GetAyatTexts(surahNumber,start,end,'arabic').subscribe(text =>
       this.ayatTexts = text
 
     );
   }
+
+  GetCurrentSurahNumber():number{
+    this.currentSurah;
+    this.suras;
+    return this.suras.findIndex(x => x.surahName == this.currentSurah)+1;
+  }
+
    previousPercentage = -1;
   GetProgressText(url:string | URL,name:string,recieved:number){
     url = url.toString();
@@ -97,15 +116,20 @@ export class GeneratorComponent {
     await this.ffmpeg.writeFile('video.mp4',await fetchFile('/assets/videos/landscapevid2.mp4'));
     await this.ffmpeg.exec(commands);
 
-    let subtitleFile = new TextEncoder().encode(this.getSubTitles());
+    // let subtitleFile = new TextEncoder().encode(this.getSubTitles());
+    let subtitleFile = this.getSubTitles();
     await this.ffmpeg.writeFile('subtitles.srt',subtitleFile);
-
-
-
-
     await this.ffmpeg.exec(['-stream_loop', '-1', '-i', 'video.mp4', '-i', 'output.mp3', '-c:v', 'copy', '-c:a', 'aac', '-map', '0:v:0', '-map', '1:a:0', '-shortest', 'output.mp4']);
-    // await this.ffmpeg.exec(['-i','output.mp4','-vf','subtitles=subtitles.srt,Alignment=10','outputsub.mp4']);
-    const fileData = await this.ffmpeg.readFile('output.mp4');
+    await this.ffmpeg.writeFile('quranFont','/assets/fonts/quranFont.ttf');
+    let test = await this.ffmpeg.readFile('quranFont');
+    console.log(test.length);
+
+    //:fontsdir=/tmp:force_style='Fontname=Arimo,Fontsize=24,PrimaryColour=&H00FFFFFF,OutlineColour=&H000000FF,BackColour=&H00000000,Bold=1,Italic=0,Alignment=2,MarginV=40
+    let command = ['-i','output.mp4','-vf',"subtitles=subtitles.srt:force_style=\'Fontname=\"Al Qalam Quran Majeed Web\",Alignment=10\'","-c:v","libx264","-preset","ultrafast","-crf","22","-c:a","copy",'outputsub.mp4'];
+
+    await this.ffmpeg.exec(command);
+
+    const fileData = await this.ffmpeg.readFile('outputsub.mp4');
     const data = new Uint8Array(fileData as ArrayBuffer);
     this.videoURL = URL.createObjectURL(new Blob([data.buffer],{type:'video/mp4'}))
         // let result:number = await this.ffmpeg.exec(commands);
@@ -120,6 +144,8 @@ export class GeneratorComponent {
       };
 
   getSubTitles():string{
+    console.log(this.ayahtTextAndAudio);
+
     let srtContent = '';
     let startTime = 0;
     this.ayahtTextAndAudio.forEach((subtitle,index) => {

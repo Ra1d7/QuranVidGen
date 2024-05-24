@@ -22,21 +22,23 @@ export class QuranService {
     return this.callServerService.Get(`https://quranapi.pages.dev/api/${surahNumber}/${AyahNumber}.json`)
   }
 
-  GetAyatTexts(surahNumber:number,AyahStartNumber:number,AyahEndNumber:number,language:'arabic' | 'english'):Observable<string[]>{
-    let observables:Observable<Ayah>[] = [];
-    for (let i = AyahStartNumber; i < AyahEndNumber; i++) {
-      observables.push(this.GetAyah(surahNumber,i)!);
-
+  GetAyatTexts(surahNumber:number,AyahStartNumber:number,AyahEndNumber:number,language:'arabic' | 'english'): Observable<string[]> {
+    let observables: Observable<Ayah>[] = [];
+    for (let i = AyahStartNumber; i <= AyahEndNumber; i++) {
+        observables.push(this.GetAyah(surahNumber,i)!);
     }
-    let text:string[] = [];
-    forkJoin(observables).subscribe(ayahs => {
-      ayahs.forEach(ayah =>{
-        text.push(language == 'arabic' ? ayah.arabic1 : ayah.english);
-    })})
 
-    return of(text);
+    return forkJoin(observables).pipe(
+        map(ayahs => {
+            let text: string[] = [];
+            ayahs.forEach(ayah => {
+                text.push(language == 'arabic' ? ayah.arabic1 : ayah.english);
+            });
+            return text;
+        })
+    );
+}
 
-  }
 
   GetReciters():Observable<Reciter[]> | undefined{
     return this.callServerService.Get(`https://quranapi.pages.dev/api/reciters.json`).pipe(map(value => {
@@ -48,6 +50,11 @@ export class QuranService {
       });
     }));
   }
+
+  GetAllSuras():Observable<Surah[]>{
+    return this.callServerService.Get('https://quranapi.pages.dev/api/surah.json');
+  }
+
   GetAyahAudio(reciterId:number | string,surahNumber:number,ayahNumber:number):Observable<Blob>{
     return this.http.get(`https://quranaudio.pages.dev/${reciterId}/${surahNumber}_${ayahNumber}.mp3`,{responseType:'blob'});
   }
