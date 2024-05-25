@@ -125,19 +125,16 @@ export class GeneratorComponent {
     await this.ffmpeg.writeFile('video.mp4',await fetchFile('/assets/videos/landscapevid2.mp4'));
     await this.ffmpeg.exec(commands);
 
-    let subtitleFile = new TextEncoder().encode(this.getSubTitles());
-    // let subtitleFile = this.getSubTitles();
-    console.error(subtitleFile);
-
+    // let subtitleFile = new TextEncoder().encode(this.getSubTitles());
+    let subtitleFile = this.getSubTitles();
     await this.ffmpeg.writeFile('subtitles.srt',subtitleFile);
     await this.ffmpeg.exec(['-stream_loop', '-1', '-i', 'video.mp4', '-i', 'output.mp3', '-c:v', 'copy', '-c:a', 'aac', '-map', '0:v:0', '-map', '1:a:0', '-shortest','output.mp4']);
     await this.ffmpeg.writeFile('/tmp/QuranFont',await fetchFile('/assets/fonts/QuranFont.ttf'));
     //:fontsdir=/tmp:force_style='Fontname=Arimo,Fontsize=24,PrimaryColour=&H00FFFFFF,OutlineColour=&H000000FF,BackColour=&H00000000,Bold=1,Italic=0,Alignment=2,MarginV=40
-    let command = ['-i','output.mp4','-vf',"subtitles=subtitles.srt:fontsdir=tmp:force_style='Fontname=QuranFont,Alignment=10'","-c:v","libx264","-preset","ultrafast","-crf","22","-c:a","copy",'outputsub.mp4'];
+    let command = ['-i','output.mp4','-vf',"subtitles=subtitles.srt:fontsdir=tmp:force_style='Fontname=QuranFont,Alignment=10,Bold=0,Italic=0'","-c:v","libx264","-preset","ultrafast","-crf","22","-c:a","copy",'outputsub.mp4'];
     this.executingProgress = 0;
     this.ffmpegExecuting = true;
     await this.ffmpeg.exec(command);
-
     const fileData = await this.ffmpeg.readFile('outputsub.mp4');
     const data = new Uint8Array(fileData as ArrayBuffer);
     this.videoURL = URL.createObjectURL(new Blob([data.buffer],{type:'video/mp4'}))
