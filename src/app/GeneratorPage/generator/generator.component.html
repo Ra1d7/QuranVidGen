@@ -27,16 +27,11 @@
   </div>
 
 
-  <div *ngIf="loadedAudio || firstLoad;else loading;" class="d-flex justify-content-center my-5 align-items-center">
+  <div *ngIf="(loadedAudio || firstLoad) && !ffmpegExecuting;" class="d-flex justify-content-center my-5 align-items-center">
 
     <video *ngIf="videoURL != ''" [src]="videoURL" width="500px" height="800px" autoplay controls></video>
 
   </div>
-  <ng-template #loading>
-    <span class="h1 d-flex my-5 justify-content-center align-items-center">
-      <i class="h1 fw-bold pi pi-spin pi-spinner"></i>
-    </span>
-  </ng-template>
 
 </div>
 <ng-template #progress>
