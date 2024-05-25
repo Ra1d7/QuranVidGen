@@ -49,3 +49,13 @@
   </div>
   </div>
 </ng-template>
+
+
+<div *ngIf="ffmpegExecuting" class="d-flex justify-content-center my-5 align-items-center" style="width: 100dvw;">
+
+  <div class="mx-auto w-50">
+    <span>Generating Video..</span>
+    <p-toast></p-toast>
+    <p-progressBar [value]="executingProgress"></p-progressBar>
+</div>
+</div>

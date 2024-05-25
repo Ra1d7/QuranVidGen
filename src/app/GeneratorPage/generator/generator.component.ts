@@ -33,6 +33,8 @@ export class GeneratorComponent {
   reciters:Reciter[] = [];
   currentSurah:string = '';
   currentReciterId:string = '';
+  ffmpegExecuting = false;
+  executingProgress = 0;
   ayahtTextAndAudio:{text:string,duration:number}[] = [];
   async ngAfterViewInit(){
     await this.load();
@@ -82,6 +84,11 @@ export class GeneratorComponent {
       console.warn(message);
 
     });
+    this.ffmpeg.on("progress",({progress,time}) =>{
+      this.executingProgress = Math.floor(progress * 100);
+
+    })
+
     await this.ffmpeg.load({
       coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript',true,((ev) => this.GetProgressText(ev.url,'Core Script',ev.received))),
       wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm',true,(ev => this.GetProgressText(ev.url,'Web Worker',ev.received))),
@@ -90,8 +97,10 @@ export class GeneratorComponent {
   this.loaded = true;
   };
   async transcode(audios:Blob[]) {
+
     this.firstLoad = true;
     this.loadedAudio = true;
+
     let audioNames: string[] = [];
     for (let index = 0; index < audios.length; index++) {
       let audioData = await fetchFile(audios[index]);
@@ -116,17 +125,17 @@ export class GeneratorComponent {
     await this.ffmpeg.writeFile('video.mp4',await fetchFile('/assets/videos/landscapevid2.mp4'));
     await this.ffmpeg.exec(commands);
 
-    // let subtitleFile = new TextEncoder().encode(this.getSubTitles());
-    let subtitleFile = this.getSubTitles();
+    let subtitleFile = new TextEncoder().encode(this.getSubTitles());
+    // let subtitleFile = this.getSubTitles();
+    console.error(subtitleFile);
+
     await this.ffmpeg.writeFile('subtitles.srt',subtitleFile);
-    await this.ffmpeg.exec(['-stream_loop', '-1', '-i', 'video.mp4', '-i', 'output.mp3', '-c:v', 'copy', '-c:a', 'aac', '-map', '0:v:0', '-map', '1:a:0', '-shortest', 'output.mp4']);
-    await this.ffmpeg.writeFile('quranFont','/assets/fonts/quranFont.ttf');
-    let test = await this.ffmpeg.readFile('quranFont');
-    console.log(test.length);
-
+    await this.ffmpeg.exec(['-stream_loop', '-1', '-i', 'video.mp4', '-i', 'output.mp3', '-c:v', 'copy', '-c:a', 'aac', '-map', '0:v:0', '-map', '1:a:0', '-shortest','output.mp4']);
+    await this.ffmpeg.writeFile('/tmp/QuranFont',await fetchFile('/assets/fonts/QuranFont.ttf'));
     //:fontsdir=/tmp:force_style='Fontname=Arimo,Fontsize=24,PrimaryColour=&H00FFFFFF,OutlineColour=&H000000FF,BackColour=&H00000000,Bold=1,Italic=0,Alignment=2,MarginV=40
-    let command = ['-i','output.mp4','-vf',"subtitles=subtitles.srt:force_style=\'Fontname=\"Al Qalam Quran Majeed Web\",Alignment=10\'","-c:v","libx264","-preset","ultrafast","-crf","22","-c:a","copy",'outputsub.mp4'];
-
+    let command = ['-i','output.mp4','-vf',"subtitles=subtitles.srt:fontsdir=tmp:force_style='Fontname=QuranFont,Alignment=10'","-c:v","libx264","-preset","ultrafast","-crf","22","-c:a","copy",'outputsub.mp4'];
+    this.executingProgress = 0;
+    this.ffmpegExecuting = true;
     await this.ffmpeg.exec(command);
 
     const fileData = await this.ffmpeg.readFile('outputsub.mp4');
@@ -141,6 +150,7 @@ export class GeneratorComponent {
         // );
 
         this.loadedAudio = true;
+        this.ffmpegExecuting = false;
       };
 
   getSubTitles():string{
