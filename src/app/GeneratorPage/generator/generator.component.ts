@@ -1,4 +1,4 @@
-import { AfterViewInit, Component } from '@angular/core';
+import { AfterViewInit, Component, signal } from '@angular/core';
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
 import { ProgressCallback } from '@ffmpeg/util/dist/cjs/types';
@@ -34,12 +34,13 @@ export class GeneratorComponent {
   currentReciterId:string = '';
   ffmpegExecuting = false;
   videoPickerVisible = false;
-  executingProgress = 0;
+  executingProgress = signal(0);
   executingTime = 0;
   ayahtTextAndAudio:{text:string,duration:number}[] = [];
-  executingProgressLabel = '';
+  executingProgressLabel = signal('');
   fontSize:number = 18;
   pickedVideo:number | undefined;
+  clock:number = 0;
   getPickedVideo():string | undefined{
     if(this.pickedVideo){
       return `Video ${this.pickedVideo}`;
@@ -64,9 +65,8 @@ export class GeneratorComponent {
     let end = Number.parseInt(endAyah)
     this.ayatTexts = await this.quranService.GetAyatTexts(surahNumber,start,end,'arabic').toPromise() ?? [];
 
-    this.quranService.GetAyahsAudio(reciterId,surahNumber,start,end).subscribe(async blobs => {
-      await this.transcode(blobs);
-    });
+    let blobs = await this.quranService.GetAyahsAudio(reciterId,surahNumber,start,end).toPromise() ?? [];
+    await this.transcode(blobs);
   }
 
   GetCurrentSurahNumber():number{
@@ -93,7 +93,7 @@ export class GeneratorComponent {
       this.message = message;
     });
     this.ffmpeg.on("progress",({progress,time}) =>{
-      this.executingProgress = Math.floor(progress * 100);
+      this.executingProgress.set(Math.floor(progress * 100));
       this.executingTime = Math.floor(time / 1000000);
 
 
@@ -126,21 +126,21 @@ export class GeneratorComponent {
     // let silenceCommand = ['-f', 'lavfi', '-i', 'anullsrc', '-t', '0.5', 'silence.mp3'];
     // await this.ffmpeg.exec(silenceCommand);
     // Create a text file with the names of the audio files to be concatenated
-    this.executingProgressLabel = 'Generating Subtitles'
+    this.executingProgressLabel.set('Generating Subtitles');
     let filelist = audioNames.join('\n');
     await this.ffmpeg.writeFile('filelist.txt', filelist);
-    this.executingProgressLabel = 'Generating Audio'
+    this.executingProgressLabel.set('Generating Audio');
     // Use the concat demuxer in ffmpeg
     let commands = ['-f', 'concat', '-safe', '0', '-i', 'filelist.txt', '-c', 'copy', 'output.mp3'];
-    let randomVideo = Math.round((Math.random() * 19)+1)
+    let randomVideo = Math.max(Math.round((Math.random() * 19)),1)
     let finalVideoName = this.pickedVideo ? this.pickedVideo : randomVideo;
     await this.ffmpeg.writeFile('video.mp4',await fetchFile(`/assets/videos/${finalVideoName}.mp4`));
     await this.ffmpeg.exec(commands);
-    this.executingProgressLabel = 'Merging Audio with Video'
+    this.executingProgressLabel.set('Merging Audio with Video');
     // let subtitleFile = new TextEncoder().encode(this.getSubTitles());
-    let subtitleFile = this.getSubtitlesAsAss('center','QuranFont',this.fontSize.toString());
+    let subtitleFile = this.getSubtitlesAsAss('center','Al-QuranAlKareem',this.fontSize.toString());
     await this.ffmpeg.writeFile('subtitles.ass',subtitleFile);
-    await this.ffmpeg.writeFile('/tmp/QuranFont',await fetchFile('/assets/fonts/QuranFont.ttf'));
+    await this.ffmpeg.writeFile('/tmp/Al-QuranAlKareem',await fetchFile('/assets/fonts/Al-QuranAlKareem.ttf'));
     // await this.ffmpeg.writeFile('subtitles.ass',await fetchFile('/assets/subs/test.ass'));
     await this.ffmpeg.exec(['-stream_loop', '-1', '-i', 'video.mp4', '-i', 'output.mp3', '-c:v', 'copy', '-c:a', 'aac', '-map', '0:v:0', '-map', '1:a:0', '-shortest','output.mp4']);
     //:fontsdir=/tmp:force_style='Fontname=Arimo,Fontsize=24,PrimaryColour=&H00FFFFFF,OutlineColour=&H000000FF,BackColour=&H00000000,Bold=1,Italic=0,Alignment=2,MarginV=40

@@ -67,9 +67,9 @@
 <div *ngIf="ffmpegExecuting" class="d-flex justify-content-center my-5 align-items-center" style="width: 100dvw;">
 
   <div class="mx-auto w-50">
-    <div class="d-flex justify-content-between"><span>{{this.executingProgressLabel}}</span> <span>Elapsed Time <span class="fw-bold">{{executingTime + ' s'}}</span></span></div>
+    <div class="d-flex justify-content-between"><span>{{this.executingProgressLabel()}}</span> <span>Elapsed Time <span class="fw-bold">{{this.clock + ' s'}}</span></span></div>
     <p-toast></p-toast>
-    <p-progressBar [value]="executingProgress"></p-progressBar>
+    <p-progressBar [value]="executingProgress()"></p-progressBar>
 </div>
 </div>
 

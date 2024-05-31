@@ -32,7 +32,7 @@ export class QuranService {
         map(ayahs => {
             let text: string[] = [];
             ayahs.forEach(ayah => {
-                text.push(language == 'arabic' ? ayah.arabic2 : ayah.english);
+                text.push(language == 'arabic' ? ayah.arabic1 : ayah.english);
             });
             return text;
         })
