@@ -6,7 +6,6 @@ import { Reciter } from 'src/app/Interfaces/reciter';
 import { Surah } from 'src/app/Interfaces/surah';
 import { HelperService } from 'src/app/Services/helper.service';
 import { QuranService } from 'src/app/Services/quran.service';
-import workerUrl from "@ffmpeg/ffmpeg/dist/esm/worker.js?worker&url";
 const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm";
 export interface currentLoading{
   name:string;
@@ -106,7 +105,7 @@ export class GeneratorComponent {
     await this.ffmpeg.load({
       coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript',true,((ev) => this.GetProgressText(ev.url,'Core Script',ev.received))),
       wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm',true,(ev => this.GetProgressText(ev.url,'Web Worker',ev.received))),
-      classWorkerURL: new URL(workerUrl,import.meta.url).toString()
+      classWorkerURL: new URL('@ffmpeg/ffmpeg/dist/esm/worker.js?worker&url',import.meta.url).toString()
   });
   this.loaded = true;
   };
