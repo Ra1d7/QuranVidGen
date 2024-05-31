@@ -1,0 +1,14 @@
+<div class="row w-100 object-fit-contain gap-1 row-gap-3 px-4 my-4 justify-content-around">
+  <ng-container *ngFor="let number of videoNumbers">
+    <div class="col-5 aftero col-md-3 col-lg-2 p-0 m-0 d-flex justify-content-center align-items-center" style="cursor: pointer;" (click)="pickVideo(number)" (mouseover)="vid.play()" (mouseleave)="vid.pause()">
+      <video #vid class="video-item" [src]="'assets/videos/' + number + '.mp4'" >
+      </video>
+    </div>
+  </ng-container>
+  <div class="col-5 col-md-3 col-lg-2 p-0 m-0 d-flex justify-content-center align-items-center" style="cursor: pointer;" (click)="pickVideo(undefined)">
+    <div class="video-item bg-danger hover-effect d-flex justify-content-center align-items-center">
+      <img width="80px" height="80px"  src="assets/images/random.svg"/>
+    </div>
+  </div>
+
+</div>

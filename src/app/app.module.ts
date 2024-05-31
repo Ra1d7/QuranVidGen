@@ -15,11 +15,15 @@ import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { DropdownModule } from 'primeng/dropdown';
 import { FormsModule } from '@angular/forms';
+import { VideosDialogComponent } from './GeneratorPage/videos-dialog/videos-dialog.component';
+import { DialogModule } from 'primeng/dialog';
+
 
 @NgModule({
   declarations: [
     AppComponent,
-    GeneratorComponent
+    GeneratorComponent,
+    VideosDialogComponent
   ],
   imports: [
     BrowserModule,
@@ -34,7 +38,8 @@ import { FormsModule } from '@angular/forms';
     ProgressBarModule,
     ToastModule,
     DropdownModule,
-    FormsModule
+    FormsModule,
+    DialogModule
   ],
   providers: [MessageService],
   bootstrap: [AppComponent]

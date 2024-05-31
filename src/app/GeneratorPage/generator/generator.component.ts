@@ -34,10 +34,19 @@ export class GeneratorComponent {
   currentSurah:string = '';
   currentReciterId:string = '';
   ffmpegExecuting = false;
+  videoPickerVisible = false;
   executingProgress = 0;
   executingTime = 0;
   ayahtTextAndAudio:{text:string,duration:number}[] = [];
   executingProgressLabel = '';
+  fontSize:number = 18;
+  pickedVideo:number | undefined;
+  getPickedVideo():string | undefined{
+    if(this.pickedVideo){
+      return `Video ${this.pickedVideo}`;
+    }
+    return undefined;
+  }
   async ngAfterViewInit(){
     await this.load();
     this.quranService.GetAllSuras().subscribe(suras =>{
@@ -49,16 +58,19 @@ export class GeneratorComponent {
 
   }
   async GetAyahsAndLoadThem(surahNumber:number,reciter:string,startAyah:string,endAyah:string){
+    this.ayahtTextAndAudio = [];
+    this.ayatTexts = [];
     let reciterId = Number.parseInt(reciter)
     let start = Number.parseInt(startAyah)
     let end = Number.parseInt(endAyah)
-    this.quranService.GetAyahsAudio(reciterId,surahNumber,start,end).subscribe(async blobs => {
-      await this.transcode(blobs);
-    });
     this.quranService.GetAyatTexts(surahNumber,start,end,'arabic').subscribe(text =>
       this.ayatTexts = text
 
     );
+
+    this.quranService.GetAyahsAudio(reciterId,surahNumber,start,end).subscribe(async blobs => {
+      await this.transcode(blobs);
+    });
   }
 
   GetCurrentSurahNumber():number{
@@ -83,11 +95,6 @@ export class GeneratorComponent {
     this.loaded = false;
     this.ffmpeg.on("log", ({ message,type }) => {
       this.message = message;
-      if(message.includes('stamp')){
-        console.log(message);
-
-      }
-
     });
     this.ffmpeg.on("progress",({progress,time}) =>{
       this.executingProgress = Math.floor(progress * 100);
@@ -129,17 +136,14 @@ export class GeneratorComponent {
     this.executingProgressLabel = 'Generating Audio'
     // Use the concat demuxer in ffmpeg
     let commands = ['-f', 'concat', '-safe', '0', '-i', 'filelist.txt', '-c', 'copy', 'output.mp3'];
-    await this.ffmpeg.writeFile('video.mp4',await fetchFile('/assets/videos/landscapevid2.mp4'));
+    let randomVideo = Math.round((Math.random() * 19)+1)
+    let finalVideoName = this.pickedVideo ? this.pickedVideo : randomVideo;
+    await this.ffmpeg.writeFile('video.mp4',await fetchFile(`/assets/videos/${finalVideoName}.mp4`));
     await this.ffmpeg.exec(commands);
     this.executingProgressLabel = 'Merging Audio with Video'
     // let subtitleFile = new TextEncoder().encode(this.getSubTitles());
-    let subtitleFile = this.getSubtitlesAsAss('center','QuranFont');
-    console.log(subtitleFile);
-
+    let subtitleFile = this.getSubtitlesAsAss('center','QuranFont',this.fontSize.toString());
     await this.ffmpeg.writeFile('subtitles.ass',subtitleFile);
-
-    // console.log(subtitleFile);
-
     await this.ffmpeg.writeFile('/tmp/QuranFont',await fetchFile('/assets/fonts/QuranFont.ttf'));
     // await this.ffmpeg.writeFile('subtitles.ass',await fetchFile('/assets/subs/test.ass'));
     await this.ffmpeg.exec(['-stream_loop', '-1', '-i', 'video.mp4', '-i', 'output.mp3', '-c:v', 'copy', '-c:a', 'aac', '-map', '0:v:0', '-map', '1:a:0', '-shortest','output.mp4']);
@@ -169,7 +173,7 @@ ScaledBorderAndShadow: yes
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Default,${fontName},${fontsize},&Hffffff,&Hffffff,&H0,&H0,0,0,0,0,100,100,0,0,0,0,0,5,0,0,0,0,UTF-8
+Style: Default,${fontName},${fontsize},&Hffffff,&Hffffff,&H000000,&H0,0,0,0,0,100,100,0,0,0,1,1,5,0,0,0,0,UTF-8
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n`;

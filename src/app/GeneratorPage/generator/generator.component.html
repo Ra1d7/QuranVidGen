@@ -1,28 +1,46 @@
 <div *ngIf="loaded;else progress">
-  <div class="d-flex justify-content-center align-items-center flex-lg-row flex-column mx-auto px-3 mt-3 gap-3">
+  <div class="row  mx-auto">
+    <div class="d-flex col-md-10 col-lg-8 col-xl-6 col-xxl-4 justify-content-center align-items-center flex-column mx-auto  mt-3 gap-3">
 
 
-    <p-dropdown [options]="suras" [optionLabel]="'surahName'" class="w-100" styleClass="w-100" [(ngModel)]="currentSurah" placeholder="Select a Surah" (onChange)="helper.SurahNumberRestrict(GetCurrentSurahNumber(),start,end)" [dropdownIcon]="'pi pi-book'" [optionValue]="'surahName'" [filter]="true" ></p-dropdown>
-    <p-dropdown [options]="reciters" [optionLabel]="'name'" class="w-100" styleClass="w-100" [(ngModel)]="currentReciterId" placeholder="Select a Reciter" [dropdownIcon]="'pi pi-user'" [optionValue]="'id'"  ></p-dropdown>
+      <p-dropdown [options]="suras" [optionLabel]="'surahName'" class="w-100" styleClass="w-100" [(ngModel)]="currentSurah" placeholder="Select a Surah" (onChange)="helper.SurahNumberRestrict(GetCurrentSurahNumber(),start,end)" [dropdownIcon]="'pi pi-book'" [optionValue]="'surahName'" [filter]="true" ></p-dropdown>
+      <p-dropdown [options]="reciters" [optionLabel]="'name'" class="w-100" styleClass="w-100" [(ngModel)]="currentReciterId" placeholder="Select a Reciter" [dropdownIcon]="'pi pi-user'" [optionValue]="'id'"  ></p-dropdown>
 
-    <div class="p-inputgroup">
-      <span class="p-inputgroup-addon">
-        <i class="pi pi-play"></i>
-    </span>
-      <input #start type="number" [min]="1" (input)="helper.InputNumberRestrict(start)" pInputText placeholder="Start Ayah" />
-    </div>
-    <div class="p-inputgroup">
-      <span class="p-inputgroup-addon">
-        <i class="pi pi-circle-on"></i>
+      <div class="p-inputgroup">
+        <span class="p-inputgroup-addon">
+          <i class="pi pi-play"></i>
       </span>
-      <input #end type="number" [min]="1" (input)="helper.InputNumberRestrict(end)" pInputText placeholder="End Ayah" />
-    </div>
+        <input #start type="number" [min]="1" (input)="helper.InputNumberRestrict(start)" pInputText placeholder="Start Ayah" />
+        <span class="ms-2 rounded-start p-inputgroup-addon">
+          <i class="pi pi-circle-on"></i>
+        </span>
+        <input #end type="number" [min]="1" (input)="helper.InputNumberRestrict(end)" pInputText placeholder="End Ayah" />
+      </div>
+      <div class="p-inputgroup">
+        <span class="p-inputgroup-addon">
+          <img src="assets/images/font.svg" alt="">
+        </span>
+        <input #end type="number" [min]="1" [max]="46" [(ngModel)]="fontSize" pInputText placeholder="Font Size" />
+        <span class="ms-2 rounded-start p-inputgroup-addon">
+          <i class="pi pi-video"></i>
+        </span>
+        <div class="w-50">
+          <p-button [label]="getPickedVideo() ?? 'Random Video'" styleClass="rounded-end w-100" class="w-100" [outlined]="true" severity="secondary" (onClick)="videoPickerVisible = true"></p-button>
+        </div>
+      </div>
 
 
 
-    <div class="p-inputgroup w-auto">
+      <div class="p-inputgroup my-3 w-auto">
 
-      <p-button label="Generate" [disabled]="currentReciterId == '' || currentSurah == '' || !start.value || !end.value" [icon]="'pi pi-bolt'"  [rounded]="true" severity="secondary"  (onClick)="GetAyahsAndLoadThem(GetCurrentSurahNumber(),currentReciterId,start.value,end.value)"></p-button>
+        <p-button label="Generate" [disabled]="currentReciterId == '' || currentSurah == '' || !start.value || !end.value" [iconPos]="'right'"  [rounded]="true" severity="secondary"  (onClick)="GetAyahsAndLoadThem(GetCurrentSurahNumber(),currentReciterId,start.value,end.value)">
+
+          <ng-template pTemplate="icon">
+
+            <img src="assets/images/generate.svg" alt="">
+          </ng-template>
+        </p-button>
+      </div>
     </div>
   </div>
 
@@ -54,3 +72,9 @@
     <p-progressBar [value]="executingProgress"></p-progressBar>
 </div>
 </div>
+
+
+
+<p-dialog header="Background Video Gallery" [(visible)]="videoPickerVisible" [resizable]="true" [breakpoints]="{ '960px': '75vw' }" [style]="{width: '50vw'}">
+  <app-videos-dialog (pickedVideo)="pickedVideo = $event;videoPickerVisible=false"></app-videos-dialog>
+</p-dialog>

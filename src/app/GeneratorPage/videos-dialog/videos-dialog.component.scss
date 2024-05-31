@@ -1,0 +1,43 @@
+.video-item{
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  object-fit: cover;
+  border-radius: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.aftero{
+  position: relative;
+}
+.aftero::after{
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  transform: translate(-50%, -50%); /* Center the after element */
+  z-index: 5;
+  display: block;
+  background-color: rgba($color: #000000, $alpha: 0.4);
+  transition: all 0.2s ease-in-out;
+
+}
+.aftero:hover::after{
+  background-color: transparent;
+}
+.hover-effect:hover{
+  img{
+    animation: rotateOnHover 2s infinite ease-in-out;
+  }
+}
+
+@keyframes rotateOnHover {
+  50%{
+    transform: rotate(360deg);
+  }
+}
