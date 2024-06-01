@@ -89,7 +89,7 @@ export class GeneratorComponent {
 
   async load() {
     this.loaded = false;
-    this.ffmpeg.on("log", ({ message,type }) => {
+    this.ffmpeg.on("log", ({ message }) => {
       this.message = message;
     });
     this.ffmpeg.on("progress",({progress,time}) =>{
@@ -107,7 +107,7 @@ export class GeneratorComponent {
   this.loaded = true;
   };
   async transcode(audios:Blob[]) {
-    this.ffmpegExecuting = true;
+
     this.firstLoad = true;
     this.loadedAudio = true;
 
@@ -142,6 +142,8 @@ export class GeneratorComponent {
     await this.ffmpeg.writeFile('subtitles.ass',subtitleFile);
     await this.ffmpeg.writeFile('/tmp/Al-QuranAlKareem',await fetchFile('/assets/fonts/Al-QuranAlKareem.ttf'));
     // await this.ffmpeg.writeFile('subtitles.ass',await fetchFile('/assets/subs/test.ass'));
+    this.ffmpegExecuting = true;
+    this.executingProgress.set(0);
     await this.ffmpeg.exec(['-stream_loop', '-1', '-i', 'video.mp4', '-i', 'output.mp3', '-c:v', 'copy', '-c:a', 'aac', '-map', '0:v:0', '-map', '1:a:0', '-shortest','output.mp4']);
     //:fontsdir=/tmp:force_style='Fontname=Arimo,Fontsize=24,PrimaryColour=&H00FFFFFF,OutlineColour=&H000000FF,BackColour=&H00000000,Bold=1,Italic=0,Alignment=2,MarginV=40
     let command = ['-i','output.mp4',"-vf","ass=subtitles.ass:fontsdir=tmp","-c:v","libx264","-preset","ultrafast","-crf","32","-c:a","copy",'outputsub.mp4'];
