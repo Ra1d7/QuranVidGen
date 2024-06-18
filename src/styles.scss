@@ -7,6 +7,7 @@
 @import "node_modules/ngx-bootstrap/datepicker/bs-datepicker";
 
 @import "primeicons/primeicons.css";
+@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
 
 @font-face {
   font-family: 'quranFont';
@@ -14,7 +15,15 @@
   font-weight: normal;
   font-style: normal;
 }
+body{
+  font-family: "Roboto", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
 
 .quran-text {
   font-family: "quranFont", sans-serif;
 }
+
+
+

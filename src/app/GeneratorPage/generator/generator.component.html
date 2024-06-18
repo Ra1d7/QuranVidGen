@@ -1,3 +1,7 @@
+<div class="main-container">
+  <div class="title d-flex flex-column my-3 text-light text-center">
+    <h3>Quran Video Generator</h3>
+  </div>
 <div *ngIf="loaded;else progress">
   <div class="row  mx-auto">
     <div class="d-flex col-md-10 col-lg-8 col-xl-6 col-xxl-4 justify-content-center align-items-center flex-column mx-auto  mt-3 gap-3">
@@ -25,7 +29,7 @@
           <i class="pi pi-video"></i>
         </span>
         <div class="w-50">
-          <p-button [label]="getPickedVideo() ?? 'Random Video'" styleClass="rounded-end w-100" class="w-100" [outlined]="true" severity="secondary" (onClick)="videoPickerVisible = true"></p-button>
+          <p-button [label]="getPickedVideo() ?? 'Random Video'" styleClass="rounded-end w-100" class="w-100"  severity="primary" (onClick)="videoPickerVisible = true"></p-button>
         </div>
       </div>
 
@@ -33,7 +37,7 @@
 
       <div class="p-inputgroup my-3 w-auto">
 
-        <p-button label="Generate" [disabled]="currentReciterId == '' || currentSurah == '' || !start.value || !end.value" [iconPos]="'right'"  [rounded]="true" severity="secondary"  (onClick)="GetAyahsAndLoadThem(GetCurrentSurahNumber(),currentReciterId,start.value,end.value)">
+        <p-button label="Generate" [disabled]="currentReciterId == '' || currentSurah == '' || !start.value || !end.value" [iconPos]="'right'"  [rounded]="true" severity="primary"  (onClick)="GetAyahsAndLoadThem(GetCurrentSurahNumber(),currentReciterId,start.value,end.value)">
 
           <ng-template pTemplate="icon">
 
@@ -45,9 +49,9 @@
   </div>
 
 
-  <div *ngIf="(loadedAudio || firstLoad) && !ffmpegExecuting;" class="d-flex justify-content-center my-5 align-items-center">
+  <div *ngIf="(loadedAudio || firstLoad) && !ffmpegExecuting;" class="row my-5 justify-content-center mx-auto" style="width: 90%;">
 
-    <video *ngIf="videoURL != ''" [src]="videoURL" width="500px" height="800px" autoplay controls></video>
+    <video *ngIf="videoURL != ''" [src]="videoURL" class="col-10 col-md-6 col-lg-4" autoplay controls></video>
 
   </div>
 
@@ -64,9 +68,9 @@
 </ng-template>
 
 
-<div *ngIf="ffmpegExecuting" class="d-flex justify-content-center my-5 align-items-center" style="width: 100dvw;">
+<div *ngIf="ffmpegExecuting" class="row my-5 justify-content-center mx-auto" style="width: 90%">
 
-  <div class="mx-auto w-50">
+  <div class="col-10 col-md-6 col-lg-4">
     <div class="d-flex justify-content-between"><span>{{this.executingProgressLabel()}}</span> <span>Elapsed Time <span class="fw-bold">{{this.executingTime + ' s'}}</span></span></div>
     <p-toast></p-toast>
     <p-progressBar [ariaValueMin]="0" [ariaValueMax]="100" [value]="executingProgress()"></p-progressBar>
@@ -78,3 +82,4 @@
 <p-dialog header="Background Video Gallery" [(visible)]="videoPickerVisible" [resizable]="true" [breakpoints]="{ '960px': '75vw' }" [style]="{width: '50vw'}">
   <app-videos-dialog (pickedVideo)="pickedVideo = $event;videoPickerVisible=false"></app-videos-dialog>
 </p-dialog>
+</div>

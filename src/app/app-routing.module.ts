@@ -4,8 +4,7 @@ import { GeneratorComponent } from './GeneratorPage/generator/generator.componen
 import { VideosDialogComponent } from './GeneratorPage/videos-dialog/videos-dialog.component';
 
 const routes: Routes = [
-  {path:'',component:GeneratorComponent},
-  {path:'test',component:VideosDialogComponent}
+  {path:'',component:GeneratorComponent}
 ];
 
 @NgModule({

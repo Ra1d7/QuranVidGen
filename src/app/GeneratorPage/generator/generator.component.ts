@@ -100,8 +100,8 @@ export class GeneratorComponent {
     })
 
     await this.ffmpeg.load({
-      coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript',true,((ev) => this.GetProgressText(ev.url,'Core Script',ev.received))),
-      wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm',true,(ev => this.GetProgressText(ev.url,'Web Worker',ev.received))),
+      coreURL: await toBlobURL(`assets/ffmpeg/ffmpeg-core.js`, 'text/javascript',true,((ev) => this.GetProgressText(ev.url,'Core Script',ev.received))),
+      wasmURL: await toBlobURL(`assets/ffmpeg/ffmpeg-core.wasm`, 'application/wasm',true,(ev => this.GetProgressText(ev.url,'Web Worker',ev.received))),
       classWorkerURL: `${window.location.href}assets/ffmpeg/worker.js`
   });
   this.loaded = true;
