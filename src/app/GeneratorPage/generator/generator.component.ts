@@ -132,7 +132,7 @@ export class GeneratorComponent {
     this.executingProgressLabel.set('Generating Audio');
     // Use the concat demuxer in ffmpeg
     let commands = ['-f', 'concat', '-safe', '0', '-i', 'filelist.txt', '-c', 'copy', 'output.mp3'];
-    let randomVideo = Math.max(Math.round((Math.random() * 19)),1)
+    let randomVideo = Math.max(Math.round((Math.random() * 15)),1)
     let finalVideoName = this.pickedVideo ? this.pickedVideo : randomVideo;
     await this.ffmpeg.writeFile('video.mp4',await fetchFile(`/assets/videos/${finalVideoName}.mp4`));
     await this.ffmpeg.exec(commands);

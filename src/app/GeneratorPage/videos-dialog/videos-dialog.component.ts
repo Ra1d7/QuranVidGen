@@ -7,7 +7,7 @@ import { range } from 'rxjs';
   styleUrls: ['./videos-dialog.component.scss']
 })
 export class VideosDialogComponent {
-  videoNumbers: number[] = Array.from({ length: 19 }, (_, i) => i + 1);
+  videoNumbers: number[] = Array.from({ length: 15 }, (_, i) => i + 1);
   @Output() pickedVideo = new EventEmitter<number | undefined>();
 
   pickVideo(number:number | undefined){
