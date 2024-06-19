@@ -1,27 +1,72 @@
-# QuranVidGen
+<h1 align="center">Quran Video Generator 📽️📖</h1>
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 16.2.1.
+QuranVidGen is an innovative project that leverages the power of Angular 16 and ffmpeg.wasm to generate Quran videos entirely on the client side. Our goal is to make the spiritual experience of the Quran accessible in a visual format, with ease and efficiency.
 
-## Development server
+Built with the latest web technologies, our application ensures a seamless user experience while maintaining high performance. The Android app, created with Ionic and Capacitor, extends this functionality to mobile devices, allowing users to engage with the Quran on-the-go.
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+Join us in our journey to bring the Quran to life through technology.
+Some of the notable features of the project include:
 
-## Code scaffolding
+- An android app using Ionic framework and capacitor to carry the experience on your mobile device (fully offline)
+- Usage of FFMPEG web assembly to generate the videos directly on the client device without needing backend infrastructure
+- fully customized video generation with multiple reciters and background videos and ayat ranges of any surah.
+- Usage of primeng UI library for a beautiful and modern interface that reacts to your device's theme (dark/light) automatically.  
+- Implementation of Bootstrap 5 , tailwindcss , SCSS with Angular 16 framework to create a responsive UI.
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+<h2 align="center"> Technologies used 🧪</h2>
 
-## Build
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+<div align="center">
+<a href="[https://dotnet.microsoft.com/](https://angular.dev/)">
+<img height="32" width="32" src="https://cdn.simpleicons.org/angular/red"/></a>
 
-## Running unit tests
+<a href="[https://getbootstrap.com/](https://webassembly.org/)">
+<img height="32" width="32" src="https://cdn.simpleicons.org/webassembly/#654FF0"/></a>
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+<a href="https://ffmpeg.org/">
+<img height="32" width="32" src="https://cdn.simpleicons.org/ffmpeg/#007808"/></a>
+<a href="https://primeng.org/">
+<img height="32" width="32" src="https://www.primefaces.org/wp-content/uploads/2018/05/primeng-logo.png"/></a>
+  
+<a href="https://getbootstrap.com/">
+<img height="32" width="32" src="https://cdn.simpleicons.org/bootstrap/#7952B3"/></a>
 
-## Running end-to-end tests
+<a href="https://ionicframework.com/">
+<img height="32" width="32" src="https://cdn.simpleicons.org/ionic/"/></a>
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+<a href="https://capacitorjs.com/">
+<img height="32" width="32" src="https://cdn.simpleicons.org/capacitor/"/></a>
+<a href="[https://sass-lang.com/](https://sass-lang.com/)">
+<img height="32" width="32" src="https://cdn.simpleicons.org/sass/#CC6699"/></a>
+<a href="https://tailwindcss.com">
+<img height="32" width="32" src="https://cdn.simpleicons.org/tailwindcss/#1572B6"/></a>
 
-## Further help
+<a href="https://www.typescriptlang.org/">
+<img height="32" width="32" src="https://cdn.simpleicons.org/typescript/"/></a>
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+
+</div>
+<hr/>
+<h2 align="center"> Screenshots 🌠 </h2>
+
+<p align="center">
+  <img src="https://i.ibb.co/QnmrjgR/Screenshot-2024-06-19-025645.png" width="80%">
+</p>
+<p align="center">
+  <img src="https://i.ibb.co/1Mx7Xp5/Screenshot-2024-06-19-025053.png" width="80%">
+</p>
+
+<p align="center">
+  <img src="https://i.ibb.co/n7CNbV1/Screenshot-2024-06-19-025134.png" width="80%">
+</p>
+
+
+<p align="center">
+  <img src="https://i.ibb.co/FDb75dW/Screenshot-2024-06-19-030322.png" width="80%">
+</p>
+
+
+
+
+</hr>
+
