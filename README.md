@@ -69,8 +69,4 @@ Some of the notable features of the project include:
 
 
 </hr>
-<p align="center">
-This page is pretty self explanatory as it allows registered users to login into the website.
- it assigns them a cookie at login which lasts about 20 minutes.
-</p>
-</hr>
+
