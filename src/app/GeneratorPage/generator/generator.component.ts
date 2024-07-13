@@ -6,6 +6,8 @@ import { Reciter } from 'src/app/Interfaces/reciter';
 import { Surah } from 'src/app/Interfaces/surah';
 import { HelperService } from 'src/app/Services/helper.service';
 import { QuranService } from 'src/app/Services/quran.service';
+import { Directory, Filesystem } from '@capacitor/filesystem';
+import { Dialog } from '@capacitor/dialog';
 const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm";
 export interface currentLoading{
   name:string;
@@ -151,6 +153,36 @@ export class GeneratorComponent {
     const fileData = await this.ffmpeg.readFile('outputsub.mp4');
     const data = new Uint8Array(fileData as ArrayBuffer);
     this.videoURL = URL.createObjectURL(new Blob([data.buffer],{type:'video/mp4'}))
+    try {
+      console.log(await Filesystem.checkPermissions());
+
+      if(!((await Filesystem.checkPermissions()).publicStorage == 'granted')){
+        await Filesystem.requestPermissions()
+      }
+      try {
+        await Filesystem.mkdir({
+          directory: Directory.Documents,
+          path: 'videos',
+          recursive:false
+
+        });
+      } catch (error) {
+
+      }
+      await Filesystem.writeFile({
+        data: this.ArrayToBase64(data),
+        path:`videos/generated-video-${Date.now()}.mp4`,
+        directory: Directory.Documents
+      });
+
+      await Dialog.alert({
+        title:'Video Saved!',
+        message: `Video has been saved to your device`,
+        buttonTitle: 'Ok'
+      })
+    } catch (error) {
+
+    }
         // let result:number = await this.ffmpeg.exec(commands);
         // if(result != 0)return;
         // const fileData = await this.ffmpeg.readFile('output.mp3');
@@ -161,6 +193,7 @@ export class GeneratorComponent {
 
         this.loadedAudio = true;
         this.ffmpegExecuting = false;
+
       };
 
       getSubtitlesAsAss(alignment: string,fontName:string,fontsize:string='16'): string {
@@ -207,6 +240,15 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
 
       return `${hours}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toFixed(2).toString().padStart(2, '0')}:${hundredths.toString().padStart(2, '0')}`;
   }
+
+  ArrayToBase64( Array:Uint8Array ) {
+    var binary = '';
+    var len = Array.byteLength;
+    for (var i = 0; i < len; i++) {
+        binary += String.fromCharCode( Array[ i ] );
+    }
+    return window.btoa( binary );
+}
 
 
 }
