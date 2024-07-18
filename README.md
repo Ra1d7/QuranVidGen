@@ -1,4 +1,4 @@
-<h1 align="center">Quran Video Generator 📽️📖</h1>
+<h1 align="center">Quran Video Generator Hybrid Website & Android Application 📽️📖</h1>
 
 QuranVidGen is an innovative project that leverages the power of Angular 16 and ffmpeg.wasm to generate Quran videos entirely on the client side. Our goal is to make the spiritual experience of the Quran accessible in a visual format, with ease and efficiency.
 
