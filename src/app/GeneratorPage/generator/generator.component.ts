@@ -6,8 +6,10 @@ import { Reciter } from 'src/app/Interfaces/reciter';
 import { Surah } from 'src/app/Interfaces/surah';
 import { HelperService } from 'src/app/Services/helper.service';
 import { QuranService } from 'src/app/Services/quran.service';
-import { Directory, Filesystem } from '@capacitor/filesystem';
+import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 import { Dialog } from '@capacitor/dialog';
+import { FFmpegKitPlugin } from '@himeka/capacitor-ffmpeg-kit';
+import { Capacitor } from '@capacitor/core';
 const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm";
 export interface currentLoading{
   name:string;
@@ -91,25 +93,30 @@ export class GeneratorComponent {
 
   async load() {
     this.loaded = false;
-    this.ffmpeg.on("log", ({ message }) => {
-      this.message = message;
+
+
+    if(Capacitor.getPlatform() != 'android'){
+      this.ffmpeg.on("log", ({ message }) => {
+        this.message = message;
+      });
+      this.ffmpeg.on("progress",({progress,time}) =>{
+        this.executingProgress.set(Math.floor(progress * 100));
+        this.executingTime = Math.floor(time / 1000000);
+      })
+
+      await this.ffmpeg.load({
+        coreURL: await toBlobURL(`assets/ffmpeg/ffmpeg-core.js`, 'text/javascript',true,((ev) => this.GetProgressText(ev.url,'Core Script',ev.received))),
+        wasmURL: await toBlobURL(`assets/ffmpeg/ffmpeg-core.wasm`, 'application/wasm',true,(ev => this.GetProgressText(ev.url,'Web Worker',ev.received))),
+        classWorkerURL: `${window.location.href}assets/ffmpeg/worker.js`
     });
-    this.ffmpeg.on("progress",({progress,time}) =>{
-      this.executingProgress.set(Math.floor(progress * 100));
-      this.executingTime = Math.floor(time / 1000000);
-
-
-    })
-
-    await this.ffmpeg.load({
-      coreURL: await toBlobURL(`assets/ffmpeg/ffmpeg-core.js`, 'text/javascript',true,((ev) => this.GetProgressText(ev.url,'Core Script',ev.received))),
-      wasmURL: await toBlobURL(`assets/ffmpeg/ffmpeg-core.wasm`, 'application/wasm',true,(ev => this.GetProgressText(ev.url,'Web Worker',ev.received))),
-      classWorkerURL: `${window.location.href}assets/ffmpeg/worker.js`
-  });
+    }
   this.loaded = true;
   };
   async transcode(audios:Blob[]) {
-
+    if(Capacitor.getPlatform() == 'android'){
+      await this.transcodeAndroid(audios);
+      return;
+    }
     this.firstLoad = true;
     this.loadedAudio = true;
 
@@ -153,36 +160,7 @@ export class GeneratorComponent {
     const fileData = await this.ffmpeg.readFile('outputsub.mp4');
     const data = new Uint8Array(fileData as ArrayBuffer);
     this.videoURL = URL.createObjectURL(new Blob([data.buffer],{type:'video/mp4'}))
-    try {
-      console.log(await Filesystem.checkPermissions());
 
-      if(!((await Filesystem.checkPermissions()).publicStorage == 'granted')){
-        await Filesystem.requestPermissions()
-      }
-      try {
-        await Filesystem.mkdir({
-          directory: Directory.Documents,
-          path: 'videos',
-          recursive:false
-
-        });
-      } catch (error) {
-
-      }
-      await Filesystem.writeFile({
-        data: this.ArrayToBase64(data),
-        path:`videos/generated-video-${Date.now()}.mp4`,
-        directory: Directory.Documents
-      });
-
-      await Dialog.alert({
-        title:'Video Saved!',
-        message: `Video has been saved to your device`,
-        buttonTitle: 'Ok'
-      })
-    } catch (error) {
-
-    }
         // let result:number = await this.ffmpeg.exec(commands);
         // if(result != 0)return;
         // const fileData = await this.ffmpeg.readFile('output.mp3');
@@ -249,6 +227,166 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
     }
     return window.btoa( binary );
 }
+
+async transcodeAndroid(audios:Blob[]) {
+  try {
+    if(!((await Filesystem.checkPermissions()).publicStorage == 'granted')){
+      await Filesystem.requestPermissions()
+    }
+  } catch (error) {
+
+  }
+  try {
+    let dirRes = await Filesystem.readdir({directory:Directory.Documents,path:'quranvideos'});
+    for(let file of dirRes.files){
+      await Filesystem.deleteFile({path:file.uri});
+    }
+    await Filesystem.rmdir({directory:Directory.Documents,path:'quranvideos',recursive:true});
+  } catch (error) {
+
+  }
+  try {
+    await Filesystem.mkdir({path:'quranvideos',directory:Directory.Documents});
+  } catch (error) {
+
+  }
+  let cachePath = '/storage/emulated/0/Documents/quranvideos'
+  let OutputcachePath = 'storage/emulated/0/Documents/quranvideos'
+  this.firstLoad = true;
+  this.loadedAudio = true;
+  let audioInfos:{name:string,duration:number | undefined,data:Uint8Array}[] = [];
+  let audioNames: string[] = [];
+  for (let index = 0; index < audios.length; index++) {
+    let audioData = await fetchFile(audios[index]);
+    let duration = await this.helper.getDuration(audioData);
+    // await this.ffmpeg.writeFile(index + '.mp3', audioData);
+    await Filesystem.writeFile({
+      directory:Directory.Documents,
+      path:`quranvideos/${index}.mp3`,
+      data:this.ArrayToBase64(audioData)
+    })
+    audioInfos.push({name:`${index}.mp3`,duration:duration,data:audioData})
+    this.ayahtTextAndAudio.push({text:this.ayatTexts[index],duration:duration ?? 0})
+    // let duration = await this.ffmpeg.
+    audioNames.push(`file ${cachePath}/${index}.mp3`);
+    if (index < audios.length - 1) { // Don't add silence after the last audio file
+      // audioNames.push(`file 'silence.mp3'`);
+    }
+  }
+  // let silenceCommand = ['-f', 'lavfi', '-i', 'anullsrc', '-t', '0.5', 'silence.mp3'];
+  // await this.ffmpeg.exec(silenceCommand);
+  // Create a text file with the names of the audio files to be concatenated
+  this.executingProgressLabel.set('Generating Subtitles');
+  let filelist = audioNames.join('\n');
+  // await this.ffmpeg.writeFile('filelist.txt', filelist);
+  this.executingProgressLabel.set('Generating Audio');
+  // Use the concat demuxer in ffmpeg
+  await Filesystem.writeFile({
+    data: btoa(filelist),
+    directory:Directory.Documents,
+    path: 'quranvideos/filelist.txt'
+  });
+  // fmp.exec()
+  await FFmpegKitPlugin.scanFile({
+    directory: 'DOCUMENTS',
+    path: 'quranvideos'
+  })
+  let commands = ['-f', 'concat', '-safe', '0', '-i', `${cachePath}/filelist.txt`, '-c', 'copy', `${OutputcachePath}/output.mp3`];
+  let res = await FFmpegKitPlugin.execute({command:commands.join(' ')});
+  console.warn(res,res.returnCode);
+
+  let randomVideo = Math.max(Math.round((Math.random() * 15)),1)
+  let finalVideoName = this.pickedVideo ? this.pickedVideo : randomVideo;
+  let videoResult = await Filesystem.writeFile({
+    data: this.ArrayToBase64(await fetchFile(`/assets/videos/${finalVideoName}.mp4`)),
+    directory: Directory.Documents,
+    path: 'quranvideos/video.mp4'
+  });
+  let mp3Result = await FFmpegKitPlugin.execute({command:commands.join(' ')});
+  console.warn('mp3Result',mp3Result.returnCode);
+
+  this.executingProgressLabel.set('Merging Audio with Video');
+  // let subtitleFile = new TextEncoder().encode(this.getSubTitles());
+  let subtitleFile = this.getSubtitlesAsAss('center','Al-QuranAlKareem',this.fontSize.toString());
+  // await this.ffmpeg.writeFile('subtitles.ass',subtitleFile);
+
+  let subtitleResult = await Filesystem.writeFile({
+    data:subtitleFile,
+    directory: Directory.Documents,
+    path: 'quranvideos/subtitles.txt',
+    encoding: Encoding.UTF8
+  })
+  await Filesystem.rename({
+    directory:Directory.Documents,
+    from: 'quranvideos/subtitles.txt',
+    to: 'quranvideos/subtitles.ass'
+  })
+  let fontResult = await Filesystem.writeFile({
+    data: this.ArrayToBase64(await fetchFile('/assets/fonts/Al-QuranAlKareem.ttf')),
+    directory: Directory.Documents,
+    path: 'quranvideos/Al-QuranAlKareem'
+  })
+  // await this.ffmpeg.writeFile('subtitles.ass',await fetchFile('/assets/subs/test.ass'));
+  this.ffmpegExecuting = true;
+  this.executingProgress.set(0);
+  // await this.ffmpeg.exec(['-stream_loop', '-1', '-i', 'video.mp4', '-i', `${cachePath}/output.mp3`, '-c:v', 'copy', '-c:a', 'aac', '-map', '0:v:0', '-map', '1:a:0', '-shortest',`${cachePath}/output.mp4`]);
+  // let res2 = await FFmpegKitPlugin.execute({command:['-fflags','+genpts','-stream_loop', '-1', '-i', `${cachePath}/video.mp4`,'-i', `${cachePath}/output.mp3`, '-c:v', 'copy','-fflags','+shortest', '-c:a', 'aac', '-map', '0:v:0', '-map', '1:a:0', '-shortest',`${OutputcachePath}/output.mp4`].join(' ')});
+  console.log('----- start loop -----')
+  let res2 = await FFmpegKitPlugin.execute({command:['-stream_loop', '-1', '-i', `${cachePath}/video.mp4`,'-i', `${cachePath}/output.mp3`, '-shortest', '-map','0:v:0', '-map', '1:a:0', '-y',`${OutputcachePath}/output.mp4`].join(' ')});
+  // let res2 = await FFmpegKitPlugin.execute({command:['-i', `${cachePath}/video.mp4`, '-i', `${cachePath}/output.mp3`, 'filter_complex', '[1:v]colorkey=0xFFFFFF:0.01:0.0[KeyedOverlay];[0:v][KeyedOverlay]overlay=shortest=1:format=auto[Composite]', '-map', '[Composite]', `${OutputcachePath}/output.mp4`].join(' ')});
+  console.warn('loop result',res2.returnCode);
+
+
+  //:fontsdir=/tmp:force_style='Fontname=Arimo,Fontsize=24,PrimaryColour=&H00FFFFFF,OutlineColour=&H000000FF,BackColour=&H00000000,Bold=1,Italic=0,Alignment=2,MarginV=40
+  // let command = ['-i',`${cachePath}/output.mp4`,"-vf",`ass=${cachePath}/subtitles.ass:fontsdir=${cachePath}`,"-c:v","libx264","-preset","ultrafast","-crf","32","-c:a","copy",`${OutputcachePath}/outputsub.mp4`];
+  let command = ['-i',`${cachePath}/output.mp4`,"-vf",`ass=${cachePath}/subtitles.ass:fontsdir=${cachePath}`,"-c:a","copy",`${OutputcachePath}/outputsub.mp4`];
+  let res3 = await FFmpegKitPlugin.execute({command:command.join(' ')})
+  console.warn('res3',res3.returnCode);
+
+  // await this.ffmpeg.exec(command);
+
+
+
+
+  const fileData = await Filesystem.readFile({directory:Directory.Documents,path:'quranvideos/outputsub.mp4',encoding:Encoding.UTF8});
+  this.videoURL =  this.ArrayToBase64(new Uint8Array(fileData.data as any))
+  try {
+    try {
+      await Filesystem.mkdir({
+        directory: Directory.Documents,
+        path: 'videos',
+        recursive:false
+
+      });
+    } catch (error) {
+
+    }
+    await Filesystem.writeFile({
+      data: this.videoURL,
+      path:`videos/generated-video-${Date.now()}.mp4`,
+      directory: Directory.Documents
+    });
+
+    await Dialog.alert({
+      title:'Video Saved!',
+      message: `Video has been saved to your device`,
+      buttonTitle: 'Ok'
+    })
+  } catch (error) {
+
+  }
+      // let result:number = await this.ffmpeg.exec(commands);
+      // if(result != 0)return;
+      // const fileData = await this.ffmpeg.readFile('output.mp3');
+      // const data = new Uint8Array(fileData as ArrayBuffer);
+      // this.videoURL = URL.createObjectURL(
+      //   new Blob([data.buffer], { type: 'audio/mpeg' })
+      // );
+
+      this.loadedAudio = true;
+      this.ffmpegExecuting = false;
+
+    };
 
 
 }
