@@ -26,6 +26,4 @@ jobs:
       run: |
         npm install --force
         npm run build --if-present
-        chmod +x ./android/gradlew
         npx cap sync
-        npx cap build android
