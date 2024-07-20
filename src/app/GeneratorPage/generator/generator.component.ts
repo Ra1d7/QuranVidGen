@@ -230,9 +230,11 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
 
 async transcodeAndroid(audios:Blob[]) {
   try {
-    if(!((await Filesystem.checkPermissions()).publicStorage == 'granted')){
-      await Filesystem.requestPermissions()
-    }
+    // if(!((await Filesystem.checkPermissions()).publicStorage == 'granted')){
+    //   await Filesystem.requestPermissions()
+    // }
+    await Filesystem.requestPermissions();
+
   } catch (error) {
 
   }
@@ -262,13 +264,13 @@ async transcodeAndroid(audios:Blob[]) {
     // await this.ffmpeg.writeFile(index + '.mp3', audioData);
     await Filesystem.writeFile({
       directory:Directory.Documents,
-      path:`quranvideos/${index}.mp3`,
+      path:`quranvideos/${index+1}.mp3`,
       data:this.ArrayToBase64(audioData)
     })
-    audioInfos.push({name:`${index}.mp3`,duration:duration,data:audioData})
+    audioInfos.push({name:`${index+1}.mp3`,duration:duration,data:audioData})
     this.ayahtTextAndAudio.push({text:this.ayatTexts[index],duration:duration ?? 0})
     // let duration = await this.ffmpeg.
-    audioNames.push(`file ${cachePath}/${index}.mp3`);
+    audioNames.push(`file ${cachePath}/${index+1}.mp3`);
     if (index < audios.length - 1) { // Don't add silence after the last audio file
       // audioNames.push(`file 'silence.mp3'`);
     }
@@ -292,8 +294,9 @@ async transcodeAndroid(audios:Blob[]) {
     path: 'quranvideos'
   })
   let commands = ['-f', 'concat', '-safe', '0', '-i', `${cachePath}/filelist.txt`, '-c', 'copy', `${OutputcachePath}/output.mp3`];
-  let res = await FFmpegKitPlugin.execute({command:commands.join(' ')});
-  console.warn(res,res.returnCode);
+  // // let commands = ['-f', 'concat', '-i', `${cachePath}/filelist.txt`, '-c', 'copy', `${OutputcachePath}/output.mp3`];
+  // let res = await FFmpegKitPlugin.execute({command:commands.join(' ')});
+  // console.warn(res,res.returnCode);
 
   let randomVideo = Math.max(Math.round((Math.random() * 15)),1)
   let finalVideoName = this.pickedVideo ? this.pickedVideo : randomVideo;
@@ -331,6 +334,7 @@ async transcodeAndroid(audios:Blob[]) {
   this.executingProgress.set(0);
   // await this.ffmpeg.exec(['-stream_loop', '-1', '-i', 'video.mp4', '-i', `${cachePath}/output.mp3`, '-c:v', 'copy', '-c:a', 'aac', '-map', '0:v:0', '-map', '1:a:0', '-shortest',`${cachePath}/output.mp4`]);
   // let res2 = await FFmpegKitPlugin.execute({command:['-fflags','+genpts','-stream_loop', '-1', '-i', `${cachePath}/video.mp4`,'-i', `${cachePath}/output.mp3`, '-c:v', 'copy','-fflags','+shortest', '-c:a', 'aac', '-map', '0:v:0', '-map', '1:a:0', '-shortest',`${OutputcachePath}/output.mp4`].join(' ')});
+  // ['-stream_loop', '-1', '-i', 'video.mp4', '-i', 'output.mp3', '-c:v', 'copy', '-c:a', 'aac', '-map', '0:v:0', '-map', '1:a:0', '-shortest','output.mp4']
   console.log('----- start loop -----')
   let res2 = await FFmpegKitPlugin.execute({command:['-stream_loop', '-1', '-i', `${cachePath}/video.mp4`,'-i', `${cachePath}/output.mp3`, '-shortest', '-map','0:v:0', '-map', '1:a:0', '-y',`${OutputcachePath}/output.mp4`].join(' ')});
   // let res2 = await FFmpegKitPlugin.execute({command:['-i', `${cachePath}/video.mp4`, '-i', `${cachePath}/output.mp3`, 'filter_complex', '[1:v]colorkey=0xFFFFFF:0.01:0.0[KeyedOverlay];[0:v][KeyedOverlay]overlay=shortest=1:format=auto[Composite]', '-map', '[Composite]', `${OutputcachePath}/output.mp4`].join(' ')});

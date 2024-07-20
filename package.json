@@ -25,7 +25,7 @@
     "@capacitor/filesystem": "^6.0.0",
     "@ffmpeg/ffmpeg": "^0.12.10",
     "@ffmpeg/util": "^0.12.1",
-    "@himeka/capacitor-ffmpeg-kit": "^0.4.2",
+    "@himeka/capacitor-ffmpeg-kit": "github:Ra1d7/capacitor-plugin-ffmpeg",
     "@ionic/cli": "^7.2.0",
     "bootstrap": "^5.2.3",
     "ionic": "^5.4.16",
